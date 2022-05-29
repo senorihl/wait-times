@@ -2,10 +2,13 @@
   "expo": {
     "name": "wait-times",
     "slug": "wait-times",
+    "owner": "senorihl",
     "version": "1.0.0",
     "orientation": "portrait",
+    "githubUrl": "https://github.com/senorihl/wait-times",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "scheme": "wait-times",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -18,9 +21,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.senorihl.wait-times",
     },
     "android": {
+      "package": "com.senorihl.wait_times",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
