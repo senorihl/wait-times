@@ -60,30 +60,42 @@ export const AttractionsScreen: React.FC = () => {
                   <List.Item
                     key={`accordion-${status}-${entity.id}`}
                     title={entity.name}
-                    description={(props) => {
-                      if (schedules[entity.id]) {
-                        const schedule = schedules[entity.id].schedule.filter(
-                          (schedule) =>
-                            schedule.date === today.format("YYYY-MM-DD")
-                        );
-                        return (
-                          <View>
-                            {schedule.map((schedule, index) => (
-                              <Paragraph
-                                key={`accordion-${status}-${entity.id}-schedule-${index}`}
-                                style={{
-                                  color: props.color,
-                                  fontSize: props.fontSize,
-                                }}
-                              >
-                                From {moment(schedule.openingTime).format("LT")}{" "}
-                                to {moment(schedule.closingTime).format("LT")}
-                              </Paragraph>
-                            ))}
-                          </View>
-                        );
-                      }
-                    }}
+                    description={
+                      status !== "OPERATING"
+                        ? undefined
+                        : (props) => {
+                            if (schedules[entity.id]) {
+                              const schedule = schedules[
+                                entity.id
+                              ].schedule.filter(
+                                (schedule) =>
+                                  schedule.date === today.format("YYYY-MM-DD")
+                              );
+                              return (
+                                <View>
+                                  {schedule.map((schedule, index) => (
+                                    <Paragraph
+                                      key={`accordion-${status}-${entity.id}-schedule-${index}`}
+                                      style={{
+                                        color: props.color,
+                                        fontSize: props.fontSize,
+                                      }}
+                                    >
+                                      From{" "}
+                                      {moment(schedule.openingTime).format(
+                                        "LT"
+                                      )}{" "}
+                                      to{" "}
+                                      {moment(schedule.closingTime).format(
+                                        "LT"
+                                      )}
+                                    </Paragraph>
+                                  ))}
+                                </View>
+                              );
+                            }
+                          }
+                    }
                     right={({ color, ...props }) => (
                       <>
                         {typeof entity.queue?.STANDBY?.waitTime ===
@@ -118,7 +130,7 @@ export const AttractionsScreen: React.FC = () => {
                   <View>
                     <Subheading style={{ color }}>{e.entity.name}</Subheading>
                     <Paragraph style={{ color }}>
-                      Went from {e.from} to {e.to}
+                      Since {moment.unix(e.occuredAt).format("LT")}
                     </Paragraph>
                   </View>
                 )}
