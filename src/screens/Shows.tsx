@@ -29,30 +29,28 @@ export const ShowsScreen: React.FC = () => {
             key={`show-${show.id}`}
             title={show.name}
             description={(props) => {
+              const showtimes = show.showtimes.map((time) =>
+                moment(time.startTime).format("LT")
+              );
+              const lastShowtime = showtimes.pop();
               return (
                 <View>
-                  <Paragraph {...props} style={{ color: props.color }}>
+                  <Paragraph
+                    {...props}
+                    style={{ color: props.color, fontSize: props.fontSize }}
+                  >
                     Next representation{show.showtimes.length > 1 ? "s" : ""}
                   </Paragraph>
-                  <View style={{ flexDirection: "row" }}>
-                    {show.showtimes.map((time) => {
-                      return (
-                        <Badge
-                          size={25}
-                          style={{
-                            backgroundColor: theme.colors.background,
-                            borderColor: theme.colors.primary,
-                            borderWidth: StyleSheet.hairlineWidth,
-                            color: theme.colors.primary,
-                            marginRight: 5,
-                          }}
-                          key={`show-${show.id}-time-${time.startTime}`}
-                        >
-                          {moment(time.startTime).format("LT")}
-                        </Badge>
-                      );
-                    })}
-                  </View>
+                  <Paragraph
+                    style={{
+                      color: theme.colors.primary,
+                      fontSize: props.fontSize,
+                    }}
+                  >
+                    {showtimes.length === 0
+                      ? lastShowtime
+                      : `${showtimes.join(", ")} and ${lastShowtime}`}
+                  </Paragraph>
                 </View>
               );
             }}

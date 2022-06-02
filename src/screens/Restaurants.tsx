@@ -10,51 +10,49 @@ import { useRestaurants } from "../themeparks/hooks";
 
 export const RestaurantsScreen: React.FC = () => {
   const theme = useTheme();
-  const shows = useRestaurants();
-  const dispatch = useAppDispatch();
-  const current = useAppSelector((state) => state.themeparks.currentPark);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!current) return;
-      getEntityLive(current.id).then(saveLive).then(dispatch);
-    }, [current])
-  );
+  const restaurants = useRestaurants();
+  const today = moment();
 
   return (
     <ScrollView style={{ flex: 1 }}>
-      {shows.map((show) => {
+      {restaurants.map((restaurant) => {
+        const schedule = restaurant.schedule.filter(
+          (schedule) => schedule.date === today.format("YYYY-MM-DD")
+        );
+
         return (
           <List.Item
-            key={`show-${show.id}`}
-            title={show.name}
+            key={`restaurand-${restaurant.id}`}
+            title={restaurant.name}
             description={(props) => {
-              return (
-                <View>
-                  <Paragraph {...props} style={{ color: props.color }}>
-                    Next representation{show.showtimes.length > 1 ? "s" : ""}
-                  </Paragraph>
+              if (schedule.length === 0) {
+                return (
                   <View style={{ flexDirection: "row" }}>
-                    {show.showtimes.map((time) => {
-                      return (
-                        <Badge
-                          size={25}
-                          style={{
-                            backgroundColor: theme.colors.background,
-                            borderColor: theme.colors.primary,
-                            borderWidth: StyleSheet.hairlineWidth,
-                            color: theme.colors.primary,
-                            marginRight: 5,
-                          }}
-                          key={`show-${show.id}-time-${time.startTime}`}
-                        >
-                          {moment(time.startTime).format("LT")}
-                        </Badge>
-                      );
-                    })}
+                    <Paragraph
+                      style={{
+                        color: theme.colors.error,
+                        fontSize: props.fontSize,
+                      }}
+                    >
+                      CLOSED
+                    </Paragraph>
                   </View>
-                </View>
-              );
+                );
+              } else {
+                return (
+                  <View>
+                    {schedule.map((schedule, index) => (
+                      <Paragraph
+                        key={`restaurand-${restaurant.id}-schedule-${index}`}
+                        style={{ color: props.color, fontSize: props.fontSize }}
+                      >
+                        From {moment(schedule.openingTime).format("LT")} to{" "}
+                        {moment(schedule.closingTime).format("LT")}
+                      </Paragraph>
+                    ))}
+                  </View>
+                );
+              }
             }}
           />
         );

@@ -63,7 +63,15 @@ const App: React.FC<{ onLayout: View["props"]["onLayout"] }> = ({
   const currentPark = useAppSelector((state) => state.themeparks.currentPark);
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayout}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.dark
+          ? theme.colors.border
+          : theme.colors.primary,
+      }}
+      onLayout={onLayout}
+    >
       <StatusBar
         backgroundColor={
           theme.dark ? theme.colors.border : theme.colors.primary
@@ -120,7 +128,20 @@ const App: React.FC<{ onLayout: View["props"]["onLayout"] }> = ({
                 <RootStack.Screen
                   name="Initialization"
                   component={InitializationScreen}
-                  options={{ headerShown: false }}
+                  options={{
+                    header: (headerProps) => (
+                      <Appbar.Header theme={theme}>
+                        {headerProps.navigation.canGoBack() && (
+                          <Appbar.BackAction
+                            onPress={headerProps.navigation.goBack}
+                          />
+                        )}
+                        <Appbar.Content
+                          title={"Please choose a park to continue"}
+                        />
+                      </Appbar.Header>
+                    ),
+                  }}
                 />
               )}
             </RootStack.Navigator>

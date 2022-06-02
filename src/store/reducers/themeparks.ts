@@ -1,11 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import moment from "moment";
-import { EntityLive, LiveData } from "../../themeparks";
+import { EntityLive, EntitySchedule, LiveData } from "../../themeparks";
 
 export type AvailablePark = {
     id: string;
     name: string;
     resort: string;
+}
+
+export type EntitiesSchedules = {
+    _?: EntitySchedule, 
+} & {
+    [id: string]: EntitySchedule,
 }
 
 type LiveDiffData = Array<{ entity: LiveData, from: LiveData['status'], to: LiveData['status'], occuredAt: number }>;
@@ -14,6 +20,7 @@ export type ThemeparksInterface = {
     available: Array<AvailablePark>;
     currentPark?: AvailablePark;
     live?: EntityLive;
+    schedules?: EntitiesSchedules;
     lastUpdate?: number;
     diff: LiveDiffData
 };
@@ -39,6 +46,7 @@ const themeparksSlice = createSlice({
         ) {
             state.currentPark = action.payload;
             state.live = undefined;
+            state.schedules = undefined;
             state.diff = [];
         },
         saveLive(
@@ -64,6 +72,22 @@ const themeparksSlice = createSlice({
             state.live = action.payload;
             state.lastUpdate = moment().unix();
         },
+        saveSchedule(state, action: PayloadAction<EntitySchedule>) {
+            state.schedules = state.schedules || {};
+            const today = moment();
+            const tomorrow = moment().add(1, 'd');
+
+            const lightWeight = action.payload;
+            lightWeight.schedule = lightWeight.schedule.filter((schedule) => {
+                return schedule.date === today.format('YYYY-MM-DD') 
+                || schedule.date === tomorrow.format('YYYY-MM-DD')
+            });
+            
+            switch (action.payload.entityType) {
+                case 'PARK': state.schedules._ = lightWeight; break;
+                default: state.schedules[action.payload.id] = lightWeight; break;
+            }
+        },
         dismissDiff(
             state,
             action: PayloadAction<string>
@@ -74,5 +98,5 @@ const themeparksSlice = createSlice({
     },
 });
 
-export const { saveAvailables, saveCurrentPark, saveLive, dismissDiff } = themeparksSlice.actions;
+export const { saveAvailables, saveCurrentPark, saveLive, saveSchedule, dismissDiff } = themeparksSlice.actions;
 export default themeparksSlice.reducer;

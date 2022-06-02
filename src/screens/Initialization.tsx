@@ -1,16 +1,14 @@
 import { useFocusEffect } from "@react-navigation/native";
 import React from "react";
-import { Pressable, View } from "react-native";
-import { Button, Headline, Portal, useTheme } from "react-native-paper";
-import { useAppDispatch } from "../store/hooks";
+import { ScrollView, View } from "react-native";
+import { Button, useTheme, RadioButton } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { AvailablePark, saveCurrentPark } from "../store/reducers/themeparks";
-import { ParkDialog } from "./Settings";
 
 export const InitializationScreen: React.FC = () => {
-  const [visible, setVisible] = React.useState(false);
   const theme = useTheme();
-  const showDialog = () => setVisible(true);
-  const hideDialog = () => setVisible(false);
+  const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   useFocusEffect(
     React.useCallback(() => {
@@ -20,25 +18,53 @@ export const InitializationScreen: React.FC = () => {
   const onSave = (park: AvailablePark) => {
     dispatch(saveCurrentPark(park));
   };
+  const [selected, setSelected] = React.useState<AvailablePark>();
+  const parks = useAppSelector((state) =>
+    state.themeparks.available.reduce((prev, curr) => {
+      prev[curr.id] = curr;
+      return prev;
+    }, {} as { [id: string]: AvailablePark })
+  );
 
   return (
-    <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
-      <Headline style={{ textAlign: "center" }}>
-        Please{" "}
-        <Pressable onPress={showDialog} style={{ color: theme.colors.primary }}>
-          choose a park
-        </Pressable>{" "}
-        to continue
-      </Headline>
-
-      <Portal>
-        <ParkDialog
-          visible={visible}
-          initial={undefined}
-          onDismiss={hideDialog}
-          onSave={onSave}
-        />
-      </Portal>
+    <View
+      style={{
+        flex: 1,
+        paddingBottom: insets.bottom,
+      }}
+    >
+      <ScrollView
+        style={{
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <RadioButton.Group
+          onValueChange={(value) => {
+            setSelected(parks[value as keyof typeof parks]);
+          }}
+          value={selected?.id || ""}
+        >
+          {Object.values(parks).map(({ name, id, resort }) => {
+            return (
+              <RadioButton.Item
+                key={`park-initialize-${id}`}
+                value={id}
+                label={resort !== name ? resort + "\n" + name : name}
+                status={selected?.id === id ? "checked" : "unchecked"}
+                color={theme.colors.primary}
+              />
+            );
+          })}
+        </RadioButton.Group>
+        <Button
+          disabled={!selected}
+          mode="contained"
+          style={{ margin: 10 }}
+          onPress={() => selected && onSave(selected)}
+        >
+          Continue{!selected ? "" : ` with ${selected.name}`}
+        </Button>
+      </ScrollView>
     </View>
   );
 };

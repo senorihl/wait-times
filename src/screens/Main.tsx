@@ -1,9 +1,6 @@
-import React from "react";
-import {
-  BottomTabNavigationOptions,
-  createBottomTabNavigator,
-} from "@react-navigation/bottom-tabs";
-import { useFocusEffect, useTheme } from "@react-navigation/native";
+import React, { Children } from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useFocusEffect } from "@react-navigation/native";
 import { View, Image } from "react-native";
 import { MainTabParamList } from "../types/navigation";
 import { SettingsScreen } from "./Settings";
@@ -12,8 +9,13 @@ import { ShowsScreen } from "./Shows";
 import { RestaurantsScreen } from "./Restaurants";
 import { useAvailabilies } from "../themeparks/hooks";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { getEntityLive } from "../themeparks";
-import { saveLive } from "../store/reducers/themeparks";
+import {
+  EntitySchedule,
+  getEntityChildren,
+  getEntityLive,
+  getEntityScheduleNextThirtyDays,
+} from "../themeparks";
+import { saveLive, saveSchedule } from "../store/reducers/themeparks";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const tick_interval = 1000 * 60;
@@ -46,6 +48,18 @@ export const MainScreen: React.FC = () => {
         .then(saveLive)
         .then(dispatch)
         .then(startAutoRefresh);
+
+      getEntityChildren(current.id)
+        .then((res) => {
+          const promises: Array<
+            ReturnType<typeof getEntityScheduleNextThirtyDays>
+          > = [getEntityScheduleNextThirtyDays(res.id)];
+          res.children.forEach((child) =>
+            promises.push(getEntityScheduleNextThirtyDays(child.id))
+          );
+          return Promise.all(promises);
+        })
+        .then((schedules) => schedules.map(saveSchedule).map(dispatch));
       return () => {
         endAutoRefresh();
       };

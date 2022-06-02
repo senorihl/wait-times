@@ -9,9 +9,11 @@ import { useLastUpdate, useAttractions } from "../themeparks/hooks";
 
 export const AttractionsScreen: React.FC = () => {
   const theme = useTheme();
+  const today = moment();
   const dispatch = useAppDispatch();
   const lastUpdated = useLastUpdate();
   const live = useAttractions();
+  const schedules = useAppSelector((state) => state.themeparks.schedules || {});
   const diffs = useAppSelector((state) => state.themeparks.diff);
   const [expandedId, setExpandedId] = React.useState<
     string | number | undefined
@@ -58,17 +60,42 @@ export const AttractionsScreen: React.FC = () => {
                   <List.Item
                     key={`accordion-${status}-${entity.id}`}
                     title={entity.name}
-                    description={
-                      typeof entity.queue?.SINGLE_RIDER?.waitTime !== "number"
-                        ? undefined
-                        : `Single rider: ${entity.queue.SINGLE_RIDER?.waitTime} min.`
-                    }
+                    description={(props) => {
+                      if (schedules[entity.id]) {
+                        const schedule = schedules[entity.id].schedule.filter(
+                          (schedule) =>
+                            schedule.date === today.format("YYYY-MM-DD")
+                        );
+                        return (
+                          <View>
+                            {schedule.map((schedule, index) => (
+                              <Paragraph
+                                key={`accordion-${status}-${entity.id}-schedule-${index}`}
+                                style={{
+                                  color: props.color,
+                                  fontSize: props.fontSize,
+                                }}
+                              >
+                                From {moment(schedule.openingTime).format("LT")}{" "}
+                                to {moment(schedule.closingTime).format("LT")}
+                              </Paragraph>
+                            ))}
+                          </View>
+                        );
+                      }
+                    }}
                     right={({ color, ...props }) => (
                       <>
                         {typeof entity.queue?.STANDBY?.waitTime ===
                           "number" && (
                           <Paragraph {...props} style={{ color }}>
                             {entity.queue.STANDBY?.waitTime} min.
+                          </Paragraph>
+                        )}
+                        {typeof entity.queue?.SINGLE_RIDER?.waitTime ===
+                          "number" && (
+                          <Paragraph {...props} style={{ color }}>
+                            SR: {entity.queue.SINGLE_RIDER?.waitTime} min.
                           </Paragraph>
                         )}
                       </>

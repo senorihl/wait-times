@@ -1,5 +1,5 @@
 import moment from "moment";
-import { LiveData } from ".";
+import { EntitySchedule, LiveData } from ".";
 import { useAppSelector } from "../store/hooks";
 
 export const useLastUpdate = () => {
@@ -60,16 +60,19 @@ export const useShows = () => {
 
 export const useRestaurants = () => {
   const live = useAppSelector((state) => {
-    return (state.themeparks.live?.liveData || []).reduce((prev, curr) => {
-      if (curr.entityType === "RESTAURANT") {
-        let show = { ...curr };
-        show.name = curr.name.trim();
-        prev.push(show);
-        prev = prev.sort((a, b) => a.name.localeCompare(b.name));
-      }
+    return Object.values(state.themeparks.schedules || []).reduce(
+      (prev, curr) => {
+        if (curr.entityType === "RESTAURANT") {
+          let show = { ...curr };
+          show.name = curr.name.trim();
+          prev.push(show);
+          prev = prev.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
-      return prev;
-    }, [] as LiveData[]);
+        return prev;
+      },
+      [] as EntitySchedule[]
+    );
   });
 
   return live;
@@ -77,7 +80,8 @@ export const useRestaurants = () => {
 
 export const useAvailabilies = () => {
   const availabilies = useAppSelector((state) => {
-    return (state.themeparks.live?.liveData || []).reduce(
+    let availabilies = { ATTRACTION: false, RESTAURANT: false, SHOW: false };
+    availabilies = (state.themeparks.live?.liveData || []).reduce(
       (prev, curr) => {
         if (Object.keys(prev).indexOf(curr.entityType) > -1) {
           prev[curr.entityType as keyof typeof prev] = true;
@@ -85,8 +89,21 @@ export const useAvailabilies = () => {
 
         return prev;
       },
-      { ATTRACTION: false, RESTAURANT: false, SHOW: false }
+      availabilies
     );
+
+    availabilies = Object.values(state.themeparks.schedules || {}).reduce(
+      (prev, curr) => {
+        if (Object.keys(prev).indexOf(curr.entityType) > -1) {
+          prev[curr.entityType as keyof typeof prev] = true;
+        }
+
+        return prev;
+      },
+      availabilies
+    );
+
+    return availabilies;
   });
 
   return availabilies;
