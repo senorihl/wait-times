@@ -27,9 +27,21 @@ export default function Root() {
   }, []);
 
   React.useEffect(() => {
-    return store.subscribe((...args) => {
-      setAppIsReady(store.getState().themeparks.available.length > 0);
+    let tearDown = () => {};
+    const wait = new Promise<void>((resolve) => {
+      setTimeout(resolve, 1500);
     });
+    const loaded = new Promise<void>((resolve) => {
+      tearDown = store.subscribe(() => {
+        if (store.getState().themeparks.available.length > 0) {
+          resolve();
+        }
+      });
+    });
+    Promise.all([loaded, wait]).then(() => {
+      setAppIsReady(true);
+    });
+    return tearDown;
   }, []);
 
   const onLayoutRootView = React.useCallback(async () => {
